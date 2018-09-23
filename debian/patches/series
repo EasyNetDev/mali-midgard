@@ -1,0 +1,11 @@
+user-buf-map-api-update.patch
+use-vmf-struct-update.patch
+timestamp-zero-update.patch
+include-sched-mm-fix.patch
+dtb-add-deferring-in-log-when-clock-or-regul.patch
+dtb-drop-clk_mali-name.patch
+dtb-look-for-lower-case-IRQ-names.patch
+dtb-replace-device-tree-comptible-strings.patch
+top-level-README.patch
+4.15_ACCESS_ONCE.patch
+4.15_setup_timer_update.patch

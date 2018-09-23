@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+#export DH_VERBOSE=1
+
+#just use base version
+VERSION	:= $(shell dpkg-parsechangelog -S Version | sed 's/-.*//' | sed 's/+pristine//')
+
+%:
+	dh $* --parallel --with dkms
+
+override_dh_install:
+	dh_install driver/product/kernel/drivers/gpu/arm/midgard/* usr/src/mali-midgard-$(VERSION)
+	find debian/mali-midgard-dkms/usr/src -type f -perm -5 -print0 2>/dev/null | xargs -0r chmod a-X
+
+override_dh_dkms:
+	dh_dkms -V $(VERSION)
+
+# not much to do really ;-)
+override_dh_auto_configure override_dh_auto_build override_dh_auto_test override_dh_auto_install override_dh_auto_clean:

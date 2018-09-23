@@ -1,0 +1,51 @@
+Description: kernel 4.15 on patch as ACCESS_ONCE macro changed name
+Author: Wookey <wookey@debian.org>
+Last-Update: 2018-06-02
+
+--- /dev/null
++++ mali-midgard-16.0+pristine/driver/product/kernel/drivers/gpu/arm/midgard/patches/4.15_ACCESS_ONCE.patch
+@@ -0,0 +1,44 @@
++Description: Update for kernel change of ACCESS_ONCE -> READ/WRITE_ONCE
++Author: Wookey <wookey@debian.org>
++Last-Update: 2018-06-01
++
++--- a/ipa/mali_kbase_ipa.c
+++++ b/ipa/mali_kbase_ipa.c
++@@ -243,7 +243,7 @@ static unsigned long kbase_get_static_po
++ #endif
++ 
++ 	/* We make sure that the model we access is the correct one */
++-	model = ACCESS_ONCE(kbdev->ipa_current_model);
+++	model = READ_ONCE(kbdev->ipa_current_model);
++ 
++ #ifndef CONFIG_MALI_PWRSOFT_765
++ 	kbase_release_device(kbdev);
++@@ -271,7 +271,7 @@ static unsigned long kbase_get_dynamic_p
++ #endif
++ 
++ 	/* We make sure that the model we access is the correct one */
++-	model = ACCESS_ONCE(kbdev->ipa_current_model);
+++	model = READ_ONCE(kbdev->ipa_current_model);
++ 
++ #ifndef CONFIG_MALI_PWRSOFT_765
++ 	kbase_release_device(kbdev);
++@@ -293,7 +293,7 @@ unsigned long kbase_power_to_state(struc
++ 	struct kbase_device *kbdev = dev_get_drvdata(&df->dev);
++ 
++ 	/* We make sure that the model we access is the correct one */
++-	model = ACCESS_ONCE(kbdev->ipa_current_model);
+++	model = READ_ONCE(kbdev->ipa_current_model);
++ 
++ 	if (model && model->ops->power_to_state)
++ 		return model->ops->power_to_state(model, target_power);
++--- a/mali_kbase_mem.h
+++++ b/mali_kbase_mem.h
++@@ -543,7 +543,7 @@ void kbase_mem_pool_free_pages(struct kb
++  */
++ static inline size_t kbase_mem_pool_size(struct kbase_mem_pool *pool)
++ {
++-	return ACCESS_ONCE(pool->cur_size);
+++	return READ_ONCE(pool->cur_size);
++ }
++ 
++ /**

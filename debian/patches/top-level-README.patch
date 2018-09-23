@@ -1,0 +1,16 @@
+Description: README file
+Author: Wookey <wookey@debian.org>
+Last-Update: 2018-02-13
+
+--- /dev/null
++++ mali-midgard-16.0+pristine/README
+@@ -0,0 +1,8 @@
++This repository contains the out-of-tree Linux kernel driver for the ARM Mali
++Midgard GPU.  It is based on the r16p0 release, called 16.0 in this Debian DKMS
++package.  It also contains some patches to make it work with mainline device
++tree bindings backported to v4.9 and 4.14 kernels.
++
++Tested on Firefly rk3288 board with Debian Stretch using kernel
++packages linux-headers-4.14.0-3-armmp and linux-headers-4.9.0-4-armmp
++from Stretch and its backport to Jessie.
+\ No newline at end of file

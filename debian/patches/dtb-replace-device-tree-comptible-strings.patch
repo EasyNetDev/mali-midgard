@@ -1,0 +1,43 @@
+Description: Add patches to make driver compatible with upstream DTB mali support
+ gpu-midgard-replace-device-tree-compatible-strings.patch
+Author: Guillaume Tucker
+Last-Update: 2017-12-15
+
+--- /dev/null
++++ a/driver/product/kernel/drivers/gpu/arm/midgard/patches/0001-gpu-midgard-replace-device-tree-compatible-strings.patch
+@@ -0,0 +1,35 @@
++From cb4a8e9b23464953ddf3898095e08670e8a8f6ea Mon Sep 17 00:00:00 2001
++From: Guillaume Tucker <guillaume.tucker@collabora.com>
++Date: Wed, 12 Apr 2017 17:27:29 +0100
++Subject: [PATCH 1/4] gpu: midgard: replace device tree compatible strings
++
++Replace the list of device tree compatible strings with all the Mali
++Midgard GPU types to match the device tree bindings documentation.
++
++Signed-off-by: Guillaume Tucker <guillaume.tucker@collabora.com>
++---
++ drivers/gpu/arm/midgard/mali_kbase_core_linux.c | 9 ++++++++-
++ 1 file changed, 8 insertions(+), 1 deletion(-)
++
++diff --git a/mali_kbase_core_linux.c b/mali_kbase_core_linux.c
++index 4e95633c307f..6cba3e2318ed 100644
++--- a/mali_kbase_core_linux.c
+++++ b/mali_kbase_core_linux.c
++@@ -4161,7 +4161,14 @@ static const struct dev_pm_ops kbase_pm_ops = {
++
++ #ifdef CONFIG_OF
++ static const struct of_device_id kbase_dt_ids[] = {
++-	{ .compatible = "arm,malit6xx" },
+++	{ .compatible = "arm,mali-t604" },
+++	{ .compatible = "arm,mali-t624" },
+++	{ .compatible = "arm,mali-t628" },
+++	{ .compatible = "arm,mali-t720" },
+++	{ .compatible = "arm,mali-t760" },
+++	{ .compatible = "arm,mali-t820" },
+++	{ .compatible = "arm,mali-t860" },
+++	{ .compatible = "arm,mali-t880" },
++ 	{ .compatible = "arm,mali-midgard" },
++ 	{ /* sentinel */ }
++ };
++--
++2.11.0

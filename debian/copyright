@@ -1,0 +1,27 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: http://malideveloper.arm.com/resources/drivers/open-source-mali-midgard-gpu-kernel-drivers/
+Comment: This package is not part of the Debian distribution because it is
+ only useful with non-free software (Arm's binary Mali drivers). It is made
+ available in the contrib section for the convenience of users.
+
+Files: *
+Copyright: 2015-2017 ARM Limited
+License: GPL-2
+
+Files: debian/*
+Copyright: 2017 Wookey <wookey@wookware.org>
+License: GPL-2
+
+License: GPL-2
+ This program is free software and is provided to you under the terms of the
+ GNU General Public License version 2 as published by the Free Software
+ Foundation, and any use by you of this program is subject to the terms
+ of such GNU licence.
+ .
+ A copy of the licence is included with the program, and can also be obtained
+ from Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ Boston, MA  02110-1301, USA.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ '/usr/share/common-licenses/GPL-2'.

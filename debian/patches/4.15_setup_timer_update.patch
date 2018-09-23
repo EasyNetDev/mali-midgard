@@ -1,0 +1,81 @@
+Description: Kernel 4.15 update for setp_timer API change
+Author: Wookey <wookey@debian.org>
+Last-Update: 2018-06-02
+
+--- /dev/null
++++ mali-midgard-16.0+pristine/driver/product/kernel/drivers/gpu/arm/midgard/patches/4.15_setup_timer_update.patch
+@@ -0,0 +1,74 @@
++Description: Update for 4.15 setup_timer API change
++Author: Wookey <wookey@debian.org>
++Last-Update: 2018-06-02
++
++--- a/mali_kbase.h
+++++ b/mali_kbase.h
++@@ -203,7 +203,7 @@ int kbase_soft_event_update(struct kbase
++ 
++ bool kbase_replay_process(struct kbase_jd_atom *katom);
++ 
++-void kbasep_soft_job_timeout_worker(unsigned long data);
+++void kbasep_soft_job_timeout_worker(struct timer_list *t);
++ void kbasep_complete_triggered_soft_events(struct kbase_context *kctx, u64 evt);
++ 
++ /* api used internally for register access. Contains validation and tracing */
++--- a/mali_kbase_context.c
+++++ b/mali_kbase_context.c
++@@ -150,9 +150,9 @@ kbase_create_context(struct kbase_device
++ 
++ 	mutex_init(&kctx->vinstr_cli_lock);
++ 
++-	setup_timer(&kctx->soft_job_timeout,
+++	timer_setup(&kctx->soft_job_timeout,
++ 		    kbasep_soft_job_timeout_worker,
++-		    (uintptr_t)kctx);
+++		    0);
++ 
++ 	return kctx;
++ 
++--- a/mali_kbase_softjobs.c
+++++ b/mali_kbase_softjobs.c
++@@ -487,9 +487,9 @@ static void kbase_fence_debug_timeout(st
++ }
++ #endif /* CONFIG_MALI_FENCE_DEBUG */
++ 
++-void kbasep_soft_job_timeout_worker(unsigned long data)
+++void kbasep_soft_job_timeout_worker(struct timer_list *t)
++ {
++-	struct kbase_context *kctx = (struct kbase_context *)data;
+++	struct kbase_context *kctx = from_timer(kctx, t, soft_job_timeout);
++ 	u32 timeout_ms = (u32)atomic_read(
++ 			&kctx->kbdev->js_data.soft_job_timeout_ms);
++ 	struct timer_list *timer = &kctx->soft_job_timeout;
++--- a/mali_kbase_tlstream.c
+++++ b/mali_kbase_tlstream.c
++@@ -1029,18 +1029,15 @@ static void kbasep_tlstream_flush_stream
++ 
++ /**
++  * kbasep_tlstream_autoflush_timer_callback - autoflush timer callback
++- * @data:  unused
++  *
++  * Timer is executed periodically to check if any of the stream contains
++  * buffer ready to be submitted to user space.
++  */
++-static void kbasep_tlstream_autoflush_timer_callback(unsigned long data)
+++static void kbasep_tlstream_autoflush_timer_callback(struct timer_list *unused)
++ {
++ 	enum tl_stream_type stype;
++ 	int                 rcode;
++ 
++-	CSTD_UNUSED(data);
++-
++ 	for (stype = 0; stype < TL_STREAM_TYPE_COUNT; stype++) {
++ 		struct tl_stream *stream = tl_stream[stype];
++ 		unsigned long    flags;
++@@ -1363,7 +1360,7 @@ int kbase_tlstream_init(void)
++ 
++ 	/* Initialize autoflush timer. */
++ 	atomic_set(&autoflush_timer_active, 0);
++-	setup_timer(&autoflush_timer,
+++	timer_setup(&autoflush_timer,
++ 			kbasep_tlstream_autoflush_timer_callback,
++ 			0);
++ 

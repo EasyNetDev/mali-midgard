@@ -1,0 +1,31 @@
+mali-midgard (26.0-1) unstable; urgency=medium
+
+  * Update driver to version r26p0-01rel0
+  * This driver can be installed on Kernel 4.18.0-1-armmp
+
+ -- Adrian Ban <adrian@abtelecom.ro>  Sun, 23 Sep 2018 14:51:34 +0100
+
+mali-midgard (16.0+pristine-2) unstable; urgency=medium
+
+  * Update patches for 4.15 kernel 
+
+ -- Wookey <wookey@debian.org>  Fri, 01 Jun 2018 14:47:34 +0000
+
+mali-midgard (16.0+pristine-1) unstable; urgency=medium
+
+  * Include patches for 4.14 kernel
+  * Use actual upstream tarball
+
+ -- Wookey <wookey@debian.org>  Wed, 14 Feb 2018 04:25:26 +0000
+
+mali-midgard (16.0-2) unstable; urgency=medium
+
+  * Upload to contrib (Closes: #876222)
+
+ -- Wookey <wookey@debian.org>  Thu, 19 Oct 2017 15:00:23 +0100
+
+mali-midgard (16.0-1) unstable; urgency=low
+
+  * Initial packaging
+
+ -- Wookey <wookey@debian.org>  Thu, 03 Aug 2017 04:06:05 +0100
