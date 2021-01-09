@@ -1,0 +1,17 @@
+Description: Fixes to allow midgard r16p0 to build against 4.14 headers
+ include sched/mm.h so stuff builds
+Author: Guillaume Tucker <guillaume.tucker@collabora.com>
+Forwarded: no
+Reviewed-By: Wookey <wookey@debian.org>
+Last-Update: 2018-01-15
+
+--- a/mali_kbase_mem.c
++++ b/mali_kbase_mem.c
+@@ -31,6 +31,7 @@
+ #include <linux/bug.h>
+ #include <linux/compat.h>
+ #include <linux/version.h>
++#include <linux/sched/mm.h>
+ 
+ #include <mali_kbase_config.h>
+ #include <mali_kbase.h>

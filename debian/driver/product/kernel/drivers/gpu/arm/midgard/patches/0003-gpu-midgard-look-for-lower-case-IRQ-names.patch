@@ -1,0 +1,34 @@
+From 3fd3833a2f2862bcb4e464a4298ec8e061e83e0f Mon Sep 17 00:00:00 2001
+From: Guillaume Tucker <guillaume.tucker@collabora.com>
+Date: Tue, 11 Apr 2017 19:18:02 +0100
+Subject: [PATCH 3/4] gpu: midgard: look for lower-case IRQ names
+
+As the interrupt-names have been changed to lower-case, adjust the
+driver accordingly.
+
+Signed-off-by: Guillaume Tucker <guillaume.tucker@collabora.com>
+---
+ drivers/gpu/arm/midgard/mali_kbase_core_linux.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/mali_kbase_core_linux.c b/mali_kbase_core_linux.c
+index d35ca2bb446c..945f222e6d9e 100644
+--- a/mali_kbase_core_linux.c
++++ b/mali_kbase_core_linux.c
+@@ -1057,11 +1057,11 @@ static int assign_irqs(struct platform_device *pdev)
+ 		}
+
+ #ifdef CONFIG_OF
+-		if (!strncmp(irq_res->name, "JOB", 4)) {
++		if (!strncmp(irq_res->name, "job", 4)) {
+ 			irqtag = JOB_IRQ_TAG;
+-		} else if (!strncmp(irq_res->name, "MMU", 4)) {
++		} else if (!strncmp(irq_res->name, "mmu", 4)) {
+ 			irqtag = MMU_IRQ_TAG;
+-		} else if (!strncmp(irq_res->name, "GPU", 4)) {
++		} else if (!strncmp(irq_res->name, "gpu", 4)) {
+ 			irqtag = GPU_IRQ_TAG;
+ 		} else {
+ 			dev_err(&pdev->dev, "Invalid irq res name: '%s'\n",
+--
+2.11.0

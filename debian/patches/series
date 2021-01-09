@@ -1,0 +1,5 @@
+include-sched-mm-fix.patch
+0004-gpu-midgard-add-deferring-in-log-when-clock-or-regul.patch
+0003-gpu-midgard-look-for-lower-case-IRQ-names.patch
+top-level-README.patch
+build-for-specified-kernel-version.patch

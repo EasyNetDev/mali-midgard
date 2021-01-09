@@ -1,0 +1,18 @@
+Description: Fixes to allow midgard r16p0 to build against 4.14 headers
+ Accommodate change in katom struct
+Author: Guillaume Tucker <guillaume.tucker@collabora.com>
+Forwarded: no
+Reviewed-By: Wookey <wookey@debian.org>
+Last-Update: 2018-01-15
+
+--- a/mali_kbase_jd.c
++++ b/mali_kbase_jd.c
+@@ -975,7 +975,7 @@ bool jd_submit_atom(struct kbase_context
+ 	 * the scheduler: 'not ready to run' and 'dependency-only' jobs. */
+ 	jctx->job_nr++;
+ 
+-	katom->start_timestamp.tv64 = 0;
++	katom->start_timestamp = 0;
+ 	katom->udata = user_atom->udata;
+ 	katom->kctx = kctx;
+ 	katom->nr_extres = user_atom->nr_extres;

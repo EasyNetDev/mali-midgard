@@ -1,0 +1,18 @@
+Source: mali-midgard
+Section: contrib/kernel
+Priority: optional
+Maintainer: Wookey <wookey@debian.org>
+Build-Depends: debhelper (>= 9), dkms (>= 1.95)
+Standards-Version: 4.3.0
+Vcs-Browser: https://salsa.debian.org/wookey/mali-midgard
+Vcs-Git: https://salsa.debian.org/wookey/mali-midgard.git
+Rules-Requires-Root: no
+ 
+Package: mali-midgard-dkms
+Architecture: all
+Depends: dkms (>= 1.95), ${misc:Depends}
+Description: Mali kernel driver for midgard hardware in DKMS format.
+ This provides the kernel module for the ARM Mali 'midgard' GPU series
+ in dkms format. This covers the 6xx and 7xx GPU hardware devices. You
+ need this kernel module as well the binary drivers to make the
+ hardware work.

@@ -1,0 +1,35 @@
+Description: Fixes to allow midgard r16p0 to build against 4.14 headers
+ Update to only pass vmf fault struct
+Author: Guillaume Tucker <guillaume.tucker@collabora.com>
+Forwarded: no
+Reviewed-By: Wookey <wookey@debian.org>
+Last-Update: 2018-01-15
+
+--- a/mali_kbase_mem_linux.c
++++ b/mali_kbase_mem_linux.c
+@@ -1711,9 +1711,9 @@ static void kbase_cpu_vm_close(struct vm
+ KBASE_EXPORT_TEST_API(kbase_cpu_vm_close);
+ 
+ 
+-static int kbase_cpu_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static int kbase_cpu_vm_fault(struct vm_fault *vmf)
+ {
+-	struct kbase_cpu_mapping *map = vma->vm_private_data;
++	struct kbase_cpu_mapping *map = vmf->vma->vm_private_data;
+ 	pgoff_t rel_pgoff;
+ 	size_t i;
+ 	pgoff_t addr;
+@@ -1735,9 +1735,10 @@ static int kbase_cpu_vm_fault(struct vm_
+ 
+ 	/* insert all valid pages from the fault location */
+ 	i = rel_pgoff;
+-	addr = (pgoff_t)((uintptr_t)vmf->virtual_address >> PAGE_SHIFT);
+-	while (i < map->alloc->nents && (addr < vma->vm_end >> PAGE_SHIFT)) {
+-		int ret = vm_insert_pfn(vma, addr << PAGE_SHIFT,
++	addr = (pgoff_t)((uintptr_t)vmf->address >> PAGE_SHIFT);
++	while (i < map->alloc->nents &&
++	       (addr < vmf->vma->vm_end >> PAGE_SHIFT)) {
++		int ret = vm_insert_pfn(vmf->vma, addr << PAGE_SHIFT,
+ 		    PFN_DOWN(map->alloc->pages[i]));
+ 		if (ret < 0 && ret != -EBUSY)
+ 			goto locked_bad_fault;

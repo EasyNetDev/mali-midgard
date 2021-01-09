@@ -1,0 +1,40 @@
+From bbbffd7ddf71fbfbea2437a9111a338e0cf26a5d Mon Sep 17 00:00:00 2001
+From: Guillaume Tucker <guillaume.tucker@collabora.com>
+Date: Mon, 27 Mar 2017 15:33:43 +0100
+Subject: [PATCH 4/4] gpu: midgard: add "deferring" in log when clock or
+ regulator not found
+
+Update log messages to show that a failure to find the Mali GPU clock
+or regulator results in a later retry (-EPROBE_DEFER).
+
+Signed-off-by: Guillaume Tucker <guillaume.tucker@collabora.com>
+---
+ drivers/gpu/arm/midgard/mali_kbase_core_linux.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/mali_kbase_core_linux.c b/mali_kbase_core_linux.c
+index 945f222e6d9e..abc931794275 100644
+--- a/mali_kbase_core_linux.c
++++ b/mali_kbase_core_linux.c
+@@ -3260,7 +3260,8 @@ static int power_control_init(struct platform_device *pdev)
+ 		err = PTR_ERR(kbdev->regulator);
+ 		kbdev->regulator = NULL;
+ 		if (err == -EPROBE_DEFER) {
+-			dev_err(&pdev->dev, "Failed to get regulator\n");
++			dev_err(&pdev->dev,
++				"Failed to get regulator, deferring.\n");
+ 			return err;
+ 		}
+ 		dev_info(kbdev->dev,
+@@ -3274,7 +3275,8 @@ static int power_control_init(struct platform_device *pdev)
+ 		err = PTR_ERR(kbdev->clock);
+ 		kbdev->clock = NULL;
+ 		if (err == -EPROBE_DEFER) {
+-			dev_err(&pdev->dev, "Failed to get clock\n");
++			dev_err(&pdev->dev,
++				"Failed to get clock, deferring.\n");
+ 			goto fail;
+ 		}
+ 		dev_info(kbdev->dev, "Continuing without Mali clock control\n");
+--
+2.11.0

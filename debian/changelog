@@ -1,0 +1,44 @@
+mali-midgard (28.0-1) unstable; urgency=medium
+
+  * Update to r28p0-01rel0.
+
+ -- Adrian <devel@easynet.dev>  Fri, 08 Jan 2021 09:30:09 +0100
+
+mali-midgard (16.0+pristine-4) unstable; urgency=medium
+
+  * Update patch-matches for kernel 4.19
+  * Update to policy 4.3.0
+
+ -- Wookey <wookey@debian.org>  Fri, 04 Jan 2019 15:24:09 +0000
+
+mali-midgard (16.0+pristine-3) unstable; urgency=medium
+
+  * Update kernel patch-matches for 4.17,18,19
+  * Ensure build is against specified kernel, not current kernel
+
+ -- Wookey <wookey@debian.org>  Tue, 06 Nov 2018 13:12:58 +0000
+
+mali-midgard (16.0+pristine-2) unstable; urgency=medium
+
+  * Update patches for 4.15 kernel 
+
+ -- Wookey <wookey@debian.org>  Fri, 01 Jun 2018 14:47:34 +0000
+
+mali-midgard (16.0+pristine-1) unstable; urgency=medium
+
+  * Include patches for 4.14 kernel
+  * Use actual upstream tarball
+
+ -- Wookey <wookey@debian.org>  Wed, 14 Feb 2018 04:25:26 +0000
+
+mali-midgard (16.0-2) unstable; urgency=medium
+
+  * Upload to contrib (Closes: #876222)
+
+ -- Wookey <wookey@debian.org>  Thu, 19 Oct 2017 15:00:23 +0100
+
+mali-midgard (16.0-1) unstable; urgency=low
+
+  * Initial packaging
+
+ -- Wookey <wookey@debian.org>  Thu, 03 Aug 2017 04:06:05 +0100
