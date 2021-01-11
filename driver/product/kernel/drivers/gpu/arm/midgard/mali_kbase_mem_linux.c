@@ -799,7 +799,11 @@ int kbase_mem_flags_change(struct kbase_context *kctx, u64 gpu_addr, unsigned in
 		real_flags |= KBASE_REG_SHARE_IN;
 
 	/* now we can lock down the context, and find the region */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 	down_write(&current->mm->mmap_sem);
+#else
+	down_write(&current->mm->mmap_lock);
+#endif
 	kbase_gpu_vm_lock(kctx);
 
 	/* Validate the region */
@@ -867,7 +871,11 @@ int kbase_mem_flags_change(struct kbase_context *kctx, u64 gpu_addr, unsigned in
 
 out_unlock:
 	kbase_gpu_vm_unlock(kctx);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 	up_write(&current->mm->mmap_sem);
+#else
+	up_write(&current->mm->mmap_lock);
+#endif
 out:
 	return ret;
 }
@@ -1102,8 +1110,11 @@ static struct kbase_va_region *kbase_mem_from_user_buffer(
 		*flags |= KBASE_MEM_IMPORT_HAVE_PAGES;
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 	down_read(&current->mm->mmap_sem);
-
+#else
+	down_read(&current->mm->mmap_lock);
+#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)
 	faulted_pages = get_user_pages(current, current->mm, address, *va_pages,
 			reg->flags & KBASE_REG_GPU_WR, 0, pages, NULL);
@@ -1116,8 +1127,11 @@ static struct kbase_va_region *kbase_mem_from_user_buffer(
 			pages, NULL);
 #endif
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 	up_read(&current->mm->mmap_sem);
-
+#else
+	up_read(&current->mm->mmap_lock);
+#endif
 	if (faulted_pages != *va_pages)
 		goto fault_mismatch;
 
@@ -1575,7 +1589,11 @@ int kbase_mem_commit(struct kbase_context *kctx, u64 gpu_addr, u64 new_pages)
 		return -EINVAL;
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 	down_write(&current->mm->mmap_sem);
+#else
+	down_write(&current->mm->mmap_lock);
+#endif
 	kbase_gpu_vm_lock(kctx);
 
 	/* Validate the region */
@@ -1617,7 +1635,11 @@ int kbase_mem_commit(struct kbase_context *kctx, u64 gpu_addr, u64 new_pages)
 		 * No update to the mm so downgrade the writer lock to a read
 		 * lock so other readers aren't blocked after this point.
 		 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 		downgrade_write(&current->mm->mmap_sem);
+#else
+		downgrade_write(&current->mm->mmap_lock);
+#endif
 		read_locked = true;
 
 		/* Allocate some more pages */
@@ -1673,10 +1695,15 @@ int kbase_mem_commit(struct kbase_context *kctx, u64 gpu_addr, u64 new_pages)
 out_unlock:
 	kbase_gpu_vm_unlock(kctx);
 	if (read_locked)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 		up_read(&current->mm->mmap_sem);
 	else
 		up_write(&current->mm->mmap_sem);
-
+#else
+		up_read(&current->mm->mmap_lock);
+	else
+		up_write(&current->mm->mmap_lock);
+#endif
 	return res;
 }
 
@@ -1730,8 +1757,12 @@ KBASE_EXPORT_TEST_API(kbase_cpu_vm_close);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0))
 static int kbase_cpu_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
 {
-#else
+#elif (LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0))
 static int kbase_cpu_vm_fault(struct vm_fault *vmf)
+{
+	struct vm_area_struct *vma = vmf->vma;
+#else
+static vm_fault_t kbase_cpu_vm_fault(struct vm_fault *vmf)
 {
 	struct vm_area_struct *vma = vmf->vma;
 #endif
@@ -1763,8 +1794,14 @@ static int kbase_cpu_vm_fault(struct vm_fault *vmf)
 	addr = (pgoff_t)(vmf->address >> PAGE_SHIFT);
 #endif
 	while (i < map->alloc->nents && (addr < vma->vm_end >> PAGE_SHIFT)) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 20, 0))
 		int ret = vm_insert_pfn(vma, addr << PAGE_SHIFT,
 		    PFN_DOWN(as_phys_addr_t(map->alloc->pages[i])));
+#else
+		// vm_insert_pfn is renamed to vmf_inser_pfn starting with Kernel 4.20
+		int ret = vmf_insert_pfn(vma, addr << PAGE_SHIFT,
+		    PFN_DOWN(as_phys_addr_t(map->alloc->pages[i])));
+#endif
 		if (ret < 0 && ret != -EBUSY)
 			goto locked_bad_fault;
 
@@ -1883,7 +1920,11 @@ static int kbase_cpu_mmap(struct kbase_context *kctx,
 			phys_addr_t phys;
 
 			phys = as_phys_addr_t(page_array[i + start_off]);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 20, 0))
 			err = vm_insert_pfn(vma, addr, PFN_DOWN(phys));
+#else
+			err = vmf_insert_pfn(vma, addr, PFN_DOWN(phys));
+#endif
 			if (WARN_ON(err))
 				break;
 
@@ -1981,14 +2022,22 @@ void kbase_os_mem_map_lock(struct kbase_context *kctx)
 {
 	struct mm_struct *mm = current->mm;
 	(void)kctx;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 	down_read(&mm->mmap_sem);
+#else
+	down_read(&mm->mmap_lock);
+#endif
 }
 
 void kbase_os_mem_map_unlock(struct kbase_context *kctx)
 {
 	struct mm_struct *mm = current->mm;
 	(void)kctx;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 	up_read(&mm->mmap_sem);
+#else
+	up_read(&mm->mmap_lock);
+#endif
 }
 
 static int kbasep_reg_mmap(struct kbase_context *kctx,
@@ -2411,10 +2460,18 @@ void kbasep_os_process_page_usage_update(struct kbase_context *kctx, int pages)
 	if (mm) {
 		atomic_add(pages, &kctx->nonmapped_pages);
 #ifdef SPLIT_RSS_COUNTING
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0))
 		add_mm_counter(mm, MM_FILEPAGES, pages);
 #else
+		atomic_long_add(pages, &mm->rss_stat.count[MM_FILEPAGES]);
+#endif
+#else
 		spin_lock(&mm->page_table_lock);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0))
 		add_mm_counter(mm, MM_FILEPAGES, pages);
+#else
+		atomic_long_add(pages, &mm->rss_stat.count[MM_FILEPAGES]);
+#endif
 		spin_unlock(&mm->page_table_lock);
 #endif
 	}
@@ -2439,10 +2496,18 @@ static void kbasep_os_process_page_usage_drain(struct kbase_context *kctx)
 
 	pages = atomic_xchg(&kctx->nonmapped_pages, 0);
 #ifdef SPLIT_RSS_COUNTING
-	add_mm_counter(mm, MM_FILEPAGES, -pages);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0))
+	add_mm_counter(mm, MM_FILEPAGES, pages);
+#else
+	atomic_long_add(pages, &mm->rss_stat.count[MM_FILEPAGES]);
+#endif
 #else
 	spin_lock(&mm->page_table_lock);
-	add_mm_counter(mm, MM_FILEPAGES, -pages);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0))
+	add_mm_counter(mm, MM_FILEPAGES, pages);
+#else
+	atomic_long_add(pages, &mm->rss_stat.count[MM_FILEPAGES]);
+#endif
 	spin_unlock(&mm->page_table_lock);
 #endif
 }

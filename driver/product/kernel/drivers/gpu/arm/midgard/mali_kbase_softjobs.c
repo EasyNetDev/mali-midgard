@@ -135,7 +135,11 @@ static int kbase_dump_cpu_gpu_time(struct kbase_jd_atom *katom)
 {
 	struct kbase_vmap_struct map;
 	void *user_result;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
 	struct timespec ts;
+#else
+	struct timespec64 ts;
+#endif
 	struct base_dump_cpu_gpu_counters data;
 	u64 system_time;
 	u64 cycle_counter;
@@ -754,6 +758,9 @@ int kbase_mem_copy_from_extres(struct kbase_context *kctx,
 	size_t to_copy = min(extres_size, buf_data->size);
 	struct kbase_mem_phy_alloc *gpu_alloc = buf_data->gpu_alloc;
 	int ret = 0;
+	// fixing ISO90 forbids mixed declarations and code
+	void *extres_page;
+
 #ifdef CONFIG_DMA_SHARED_BUFFER
 	size_t dma_to_copy;
 #endif
@@ -771,7 +778,8 @@ int kbase_mem_copy_from_extres(struct kbase_context *kctx,
 	{
 		for (i = 0; i < buf_data->nr_extres_pages; i++) {
 			struct page *pg = buf_data->extres_pages[i];
-			void *extres_page = kmap(pg);
+			// fixing ISO90 forbids mixed declarations and code
+			extres_page = kmap(pg);
 
 			if (extres_page)
 				kbase_mem_copy_from_extres_page(kctx,
@@ -805,9 +813,12 @@ int kbase_mem_copy_from_extres(struct kbase_context *kctx,
 		if (ret)
 			goto out_unlock;
 
+// functions dma_buf_kmap and dma_buf_kunmap were removed in 5.6.0
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 6, 0))
 		for (i = 0; i < dma_to_copy/PAGE_SIZE; i++) {
 
-			void *extres_page = dma_buf_kmap(dma_buf, i);
+			// fixing ISO90 forbids mixed declarations and code
+			extres_page = dma_buf_kmap(dma_buf, i);
 
 			if (extres_page)
 				kbase_mem_copy_from_extres_page(kctx,
@@ -820,6 +831,23 @@ int kbase_mem_copy_from_extres(struct kbase_context *kctx,
 			if (target_page_nr >= buf_data->nr_pages)
 				break;
 		}
+#else
+// from Kernel 5.6.0 and up we must moving to dma_buf_vmap instead dma_buf_kmap 
+// and we don't need iteration anymore
+		extres_page = dma_buf_vmap(dma_buf);
+
+		if (extres_page)
+			kbase_mem_copy_from_extres_page(kctx,
+					extres_page, pages,
+					buf_data->nr_pages,
+					&target_page_nr,
+					offset, &to_copy);
+
+		dma_buf_vunmap(dma_buf, extres_page);
+
+		if (target_page_nr >= buf_data->nr_pages)
+			break;
+#endif
 		dma_buf_end_cpu_access(dma_buf,
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0) && !defined(CONFIG_CHROMEOS)
 				0, dma_to_copy,

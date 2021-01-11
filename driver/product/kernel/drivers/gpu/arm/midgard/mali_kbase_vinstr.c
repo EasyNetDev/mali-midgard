@@ -138,9 +138,15 @@ static const struct file_operations vinstr_client_fops = {
  */
 static u64 kbasep_vinstr_timestamp_ns(void)
 {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
 	struct timespec ts;
 
 	getrawmonotonic(&ts);
+#else
+	struct timespec64 ts;
+
+	ktime_get_raw_ts64(&ts);
+#endif
 	return (u64)ts.tv_sec * NSEC_PER_SEC + ts.tv_nsec;
 }
 

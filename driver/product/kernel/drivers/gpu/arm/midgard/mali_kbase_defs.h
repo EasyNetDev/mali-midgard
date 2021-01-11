@@ -996,7 +996,11 @@ enum kbase_trace_code {
  *                      in the trace message, used during dumping of the message.
  */
 struct kbase_trace {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
 	struct timespec timestamp;
+#else
+	struct timespec64 timestamp;
+#endif
 	u32 thread_id;
 	u32 cpu;
 	void *ctx;
